@@ -124,25 +124,18 @@ def show_main_app():
                              df_interim['hp_pinj_saving'] + df_interim['hp_fall_saving'] + \
                              df_in['nurse_workload_saving']
     df_interim['cumulative_pnl'] = df_interim['year_pnl'].cumsum()
+    df_interim.insert(loc=0, column='Year', value=df_interim.index)
+    df_interim['Year'] = 'Y-' + (df_interim['Year']+1).astype(str)
     st.dataframe(df_interim.round(0))
-    # Generate Dataframe
-    # data = pd.DataFrame({
-    #     'Numbers': ['Number 1', 'Number 2', 'Number 3'],
-    #     'Values': [num_beds, number2, number3]
-    # })
-    #
-    # # Create Altair Chart
-    # chart = alt.Chart(data).mark_bar().encode(
-    #     x='Numbers',
-    #     y='Values',
-    #     tooltip=['Numbers', 'Values']
-    # ).interactive()
-    #
-    # st.altair_chart(chart, use_container_width=True)
-    #
-    # # Display Dataframe
-    # st.write("Dataframe:")
-    # st.dataframe(data)
+
+    # Create Altair Chart
+    chart = alt.Chart(df_interim).mark_bar().encode(
+        x=alt.X('Year:N',sort=None),
+        y=alt.Y('cumulative_pnl:Q'),
+        tooltip=['Year', alt.Tooltip('cumulative_pnl:Q', format=',.0f')]
+    ).interactive()
+
+    st.altair_chart(chart, use_container_width=True)
 
     # Logout Button
     logout_button = st.sidebar.button("Logout")
