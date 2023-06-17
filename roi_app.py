@@ -45,7 +45,7 @@ def show_main_app():
         input_dict['hp_cost_per_bed'] = st.number_input("HP Cost per Bed ($)",
                                                         min_value=100, value=1763, step=10)
         input_dict['hp_service_cost_per_year'] = st.number_input("HP Bed Service per Year ($)",
-                                                                 min_value=100, value=220, step=10)
+                                                                 min_value=100.0, value=219.8, step=10.0)
         input_dict['hp_warranty'] = st.number_input("HP Warranty Cost ($)",
                                                     min_value=0, value=567, step=10)
 
@@ -54,52 +54,77 @@ def show_main_app():
         input_dict['man_cost_per_bed'] = st.number_input("Manual Cost per Bed ($)",
                                                          min_value=100, value=861, step=10)
         input_dict['man_service_cost_per_year'] = st.number_input("Manual Bed Service per Year ($)",
-                                                                  min_value=100, value=100, step=10)
+                                                                  min_value=100.0, value=100.0, step=10.0)
         input_dict['man_warranty'] = st.number_input("Manual Warranty ($)",
                                                      min_value=0, value=0, step=10)
     st.divider()
-    st.subheader("Potential Benefit Settings")
+    st.subheader("Injury Reduction Benefit Settings")
     st.divider()
     col1, col2 = st.columns(2)
     with col1:
         st.subheader("Pressure Injuries")
-        input_dict['pinj_risk'] = st.number_input("Pressure Injury Risk (%)", min_value=0.0, max_value=1.0, value=0.07,
-                                                  step=0.05)
+        input_dict['pinj_risk'] = st.number_input("Pressure Injury Risk (%)",
+                                                  min_value=0.0, max_value=1.0, value=0.07, step=0.05)
+        input_dict['pinj_sore_reduction'] = st.number_input("Pressure Injury Sore Rate Reduction due to Hillrom (%)",
+                                                       min_value=0.0, max_value=1.0, value=0.33,step=0.05)
         input_dict['pinj_additional_days'] = st.number_input("Pressure Additional Length of Stay",
                                                              min_value=1, value=4, step=1)
         input_dict['pinj_cost_per_day'] = st.number_input("Pressure Additional Cost per Hospital Day ($)",
-                                                          min_value=50, max_value=500,
-                                                          value=71, step=5)
+                                                          min_value=50.0, max_value=500.0, value=70.62, step=5.0)
 
     with col2:
         st.subheader("Patient Falls")
-        input_dict['fall_risk'] = st.number_input("Inpatient Fall risk (%)",
+        input_dict['fall_risk'] = st.number_input("Inpatient Fall Risk (%)",
                                                   min_value=0.0, max_value=1.0, value=0.03, step=0.05)
         input_dict['fall_near_bed'] = st.number_input("Fall Near Bed Probability (%)",
                                                       min_value=0.0, max_value=1.0, value=0.6, step=0.05)
+        input_dict['fall_reduction_probability'] = st.number_input("Fall Reduction Probability (%)",
+                                                      min_value=0.0, max_value=1.0, value=0.2, step=0.05)
         input_dict['fall_additional_days'] = st.number_input("Fall Additional Additional Length of Stay",
                                                              min_value=1, max_value=10, value=4, step=1)
         input_dict['fall_cost_per_day'] = st.number_input("Fall Additional Cost per Hospital Day  ($)",
-                                                          min_value=50, max_value=500,
-                                                          value=72, step=5)
+                                                          min_value=50.0, max_value=500.0, value=71.62, step=5.0)
+    st.divider()
+    st.subheader("Other Benefit Settings")
+    input_dict['nurse_workload_saving'] = st.number_input("Nurse Workload Saving ($)",
+                                                        min_value=1000, value=9080, step=100)
     st.divider()
     num_keys = len(list(input_dict.values()))
     input_val_list = np.array(list(input_dict.values()))
+    # convert from list into matrix for inserting into dataframe
     input_val_matrix = np.repeat(input_val_list, input_dict['projection_years']).\
         reshape(num_keys,input_dict['projection_years'])
 
-    df = pd.DataFrame(index=range(input_dict['projection_years']),
+    df_in = pd.DataFrame(index=range(input_dict['projection_years']),
                       columns=input_dict.keys(),
                       data=input_val_matrix.T)
-    df = df.drop(['projection_years'], axis=1)
-    # df['num_beds'] = input_dict['num_beds']
-    # df['average_stay'] = input_dict['average_stay']
-    # df['average_occupancy'] = input_dict['average_occupancy']
-    # df[['num_beds', 'average_stay', 'average_occupancy']] = input_dict['num_beds'],\
-    #    input_dict['average_stay'], input_dict['average_occupancy']
 
-    st.dataframe(df)
-
+    # start amending dataframe
+    df_in = df_in.drop(['projection_years'], axis=1)
+    # set costs other than year 0 (at time of purchase to 0)
+    df_in.loc[1:,['hp_cost_per_bed','hp_warranty', 'man_cost_per_bed', 'man_warranty']] = 0
+    # number of admissions per year
+    df_in['num_admissions'] = (df_in['num_beds'] * 365) * df_in['average_occupancy'] / df_in['average_stay']
+    # st.dataframe(df_in)
+    df_interim = pd.DataFrame()
+    df_interim['hp_year_cost'] = (df_in['hp_cost_per_bed'] + df_in['hp_service_cost_per_year'] +
+                                   df_in['hp_warranty']) * df_in['num_beds'] * -1
+    df_interim['man_year_cost'] = (df_in['man_cost_per_bed'] + df_in['man_service_cost_per_year'] +
+                                   df_in['man_warranty']) * df_in['num_beds'] * -1
+    df_interim['hp_pinj_saving'] = df_in['num_admissions'] * df_in['pinj_risk'] * \
+                                   (1 - df_in['pinj_sore_reduction']) * \
+                                   df_in['pinj_additional_days'] * \
+                                   df_in['pinj_cost_per_day']
+    df_interim['hp_fall_saving'] = df_in['num_admissions'] * df_in['fall_risk'] * \
+                                   df_in['fall_near_bed'] * \
+                                   df_in['fall_reduction_probability'] * \
+                                   df_in['fall_additional_days'] * \
+                                   df_in['fall_cost_per_day']
+    df_interim['year_pnl'] = df_interim['hp_year_cost'] - df_interim['man_year_cost'] + \
+                             df_interim['hp_pinj_saving'] + df_interim['hp_fall_saving'] + \
+                             df_in['nurse_workload_saving']
+    df_interim['cumulative_pnl'] = df_interim['year_pnl'].cumsum()
+    st.dataframe(df_interim.round(0))
     # Generate Dataframe
     # data = pd.DataFrame({
     #     'Numbers': ['Number 1', 'Number 2', 'Number 3'],
