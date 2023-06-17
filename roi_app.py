@@ -1,6 +1,7 @@
 import streamlit as st
 import pandas as pd
 import altair as alt
+import numpy as np
 
 if 'login' not in st.session_state:
     st.session_state.login = False
@@ -82,7 +83,22 @@ def show_main_app():
                                                           min_value=50, max_value=500,
                                                           value=72, step=5)
     st.divider()
-    st.write("input values:", input_dict)
+    num_keys = len(list(input_dict.values()))
+    input_val_list = np.array(list(input_dict.values()))
+    input_val_matrix = np.repeat(input_val_list, input_dict['projection_years']).\
+        reshape(num_keys,input_dict['projection_years'])
+
+    df = pd.DataFrame(index=range(input_dict['projection_years']),
+                      columns=input_dict.keys(),
+                      data=input_val_matrix.T)
+    df = df.drop(['projection_years'], axis=1)
+    # df['num_beds'] = input_dict['num_beds']
+    # df['average_stay'] = input_dict['average_stay']
+    # df['average_occupancy'] = input_dict['average_occupancy']
+    # df[['num_beds', 'average_stay', 'average_occupancy']] = input_dict['num_beds'],\
+    #    input_dict['average_stay'], input_dict['average_occupancy']
+
+    st.dataframe(df)
 
     # Generate Dataframe
     # data = pd.DataFrame({
