@@ -152,8 +152,6 @@ def display_charts(df_out):
 
 def show_main_app():
     input_dict = {}
-    st.set_page_config(page_title='Hillrom VIP RoI calculator',
-                       layout="wide")
     # st.title("Hillrom VIP RoI calculator")
     ansea_img = Image.open('Logo.png')
     st.image(ansea_img)
@@ -190,6 +188,8 @@ def authenticate(username, password):
 
 
 def main():
+    st.set_page_config(page_title='Hillrom VIP RoI calculator',
+                       layout="wide")
     if not st.session_state.login:
         show_login()
     else:
