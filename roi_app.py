@@ -157,7 +157,9 @@ def show_main_app():
     # st.title("Hillrom VIP RoI calculator")
     ansea_img = Image.open('Logo.png')
     st.image(ansea_img)
-    st.markdown("<h1 style='text-align: center; color: darkblue;'>Hillrom VIP RoI Calculator</h1>", unsafe_allow_html=True)
+    st.write()
+    st.write()
+    st.markdown("<h1 style='text-align: left; color: darkblue;'>Hillrom VIP RoI Calculator</h1>", unsafe_allow_html=True)
     # st.subheader("General Information Settings")
     main_col1, main_col2 = st.columns([0.35,0.65])
     with main_col1:
