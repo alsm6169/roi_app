@@ -34,7 +34,7 @@ def input_panel(input_dict):
         input_dict['average_stay'] = st.number_input("Average Stay",
                                                      min_value=1.0, value=6.2, step=0.1)
         input_dict['average_occupancy'] = st.number_input("Average Occupancy (%)",
-                                                          min_value=0.0, max_value=1.0, value=0.9, step=0.1)
+                                                          min_value=0, max_value=100, value=90, step=10) / 100
     # st.divider()
     # st.subheader("Cost Settings")
     # st.divider()
@@ -67,25 +67,25 @@ def input_panel(input_dict):
             input_dict['pinj_risk'] = st.number_input("Pressure Injury Risk (%)",
                                                       min_value=0.0, max_value=1.0, value=0.07, step=0.05)
             input_dict['pinj_sore_reduction'] = st.number_input(
-                "Pressure Injury Sore Rate Reduction due to Hillrom (%)",
-                min_value=0.0, max_value=1.0, value=0.33, step=0.05)
-            input_dict['pinj_additional_days'] = st.number_input("Pressure Additional Length of Stay",
+                "Pressure Injury Sore Rate Reduction (%)",
+                min_value=0, max_value=100, value=33, step=5) / 100
+            input_dict['pinj_additional_days'] = st.number_input("Additional Length of Stay",
                                                                  min_value=1, value=4, step=1)
-            input_dict['pinj_cost_per_day'] = st.number_input("Pressure Additional Cost per Hospital Day ($)",
+            input_dict['pinj_cost_per_day'] = st.number_input("Additional Cost per Hospital Day ($)",
                                                               min_value=50.0, max_value=500.0, value=70.62, step=5.0)
 
         with col2:
             st.subheader("Patient Falls")
             input_dict['fall_risk'] = st.number_input("Inpatient Fall Risk (%)",
-                                                      min_value=0.0, max_value=1.0, value=0.03, step=0.05)
+                                                      min_value = 0, max_value = 100, value = 3, step = 5) / 100
             input_dict['fall_near_bed'] = st.number_input("Fall Near Bed Probability (%)",
-                                                          min_value=0.0, max_value=1.0, value=0.6, step=0.05)
+                                                          min_value = 0, max_value = 100, value = 60, step = 5) / 100
             input_dict['fall_reduction_probability'] = st.number_input("Fall Reduction Probability (%)",
-                                                                       min_value=0.0, max_value=1.0, value=0.2,
-                                                                       step=0.05)
-            input_dict['fall_additional_days'] = st.number_input("Fall Additional Additional Length of Stay",
+                                                                       min_value=0, max_value=100, value=2,
+                                                                       step=5) / 100
+            input_dict['fall_additional_days'] = st.number_input("Additional Length of Stay",
                                                                  min_value=1, max_value=10, value=4, step=1)
-            input_dict['fall_cost_per_day'] = st.number_input("Fall Additional Cost per Hospital Day  ($)",
+            input_dict['fall_cost_per_day'] = st.number_input("Additional Cost per Hospital Day  ($)",
                                                               min_value=50.0, max_value=500.0, value=71.62, step=5.0)
     # st.divider()
     # st.subheader("Other Benefit Settings")
@@ -143,7 +143,7 @@ def display_charts(df_out):
     # Create Altair Chart
     chart = alt.Chart(df_out).mark_bar().encode(
         x=alt.X('Year:N', sort=None),
-        y=alt.Y('cumulative_pnl:Q'),
+        y=alt.Y('cumulative_pnl:Q').title('Cumulative P&L ($)'),
         tooltip=['Year', alt.Tooltip('cumulative_pnl:Q', format=',.0f')]
     ).interactive()
 
@@ -154,12 +154,13 @@ def show_main_app():
     input_dict = {}
     # st.title("Hillrom VIP RoI calculator")
     ansea_img = Image.open('Logo.png')
-    st.image(ansea_img)
+    # st.image(ansea_img.resize((150, 55)))
+    st.image(ansea_img, width=180)
     st.write()
     st.write()
     st.markdown("<h1 style='text-align: left; color: darkblue;'>Hillrom VIP RoI Calculator</h1>", unsafe_allow_html=True)
     # st.subheader("General Information Settings")
-    main_col1, main_col2 = st.columns([0.35,0.65])
+    main_col1, main_col2 = st.columns([0.40,0.60])
     with main_col1:
         st.subheader("Model Parameter Settings")
         st.divider()
