@@ -63,11 +63,11 @@ def input_panel(input_dict):
     with st.expander("Injury Reduction Benefit Settings"):
         col1, col2 = st.columns(2)
         with col1:
-            st.subheader("Pressure Injuries")
+            st.subheader("Pressure Injury")
             input_dict['pinj_risk'] = st.number_input("Pressure Injury Risk (%)",
                                                       min_value=0.0, max_value=1.0, value=0.07, step=0.05)
             input_dict['pinj_sore_reduction'] = st.number_input(
-                "Pressure Injury Sore Rate Reduction (%)",
+                "Sore Rate Reduction (%)",
                 min_value=0, max_value=100, value=33, step=5) / 100
             input_dict['pinj_additional_days'] = st.number_input("Additional Length of Stay",
                                                                  min_value=1, value=4, step=1)
@@ -75,7 +75,7 @@ def input_panel(input_dict):
                                                               min_value=50.0, max_value=500.0, value=70.62, step=5.0)
 
         with col2:
-            st.subheader("Patient Falls")
+            st.subheader("Patient Fall")
             input_dict['fall_risk'] = st.number_input("Inpatient Fall Risk (%)",
                                                       min_value = 0, max_value = 100, value = 3, step = 5) / 100
             input_dict['fall_near_bed'] = st.number_input("Fall Near Bed Probability (%)",
